@@ -226,15 +226,30 @@ struct FolderDetailView: View {
     @State private var cameraVideoURL: URL?
     @State private var showCameraActionSheet = false
     @Namespace private var plusButtonNS
+    @State private var searchText = ""
 
     var items: [JarItem] { (folder.items ?? []).sorted { $0.created > $1.created } }
+    var filteredItems: [JarItem] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if query.isEmpty { return items }
+        return items.filter { item in
+            item.key.localizedCaseInsensitiveContains(query) ||
+            (item.textValue?.localizedCaseInsensitiveContains(query) ?? false) ||
+            (item.fileName?.localizedCaseInsensitiveContains(query) ?? false)
+        }
+    }
 
     var body: some View {
         ZStack {
             Color(.systemGray6).ignoresSafeArea()
             VStack(spacing: 0) {
+#if os(macOS)
+                SearchField("Search", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding([.horizontal, .top])
+#endif
                 List {
-                    ForEach(items) { item in
+                    ForEach(filteredItems) { item in
                         HStack(spacing: 14) {
                             Image(systemName: item.itemType.icon)
                                 .foregroundColor(item.itemType.color)
@@ -268,6 +283,9 @@ struct FolderDetailView: View {
                 }
                 .listStyle(.plain)
                 .padding(.bottom, 90)
+#if os(iOS)
+                .searchable(text: $searchText)
+#endif
                 Spacer(minLength: 0)
             }
 
