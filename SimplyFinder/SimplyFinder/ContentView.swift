@@ -254,6 +254,10 @@ struct FolderDetailView: View {
     @State private var showCameraActionSheet = false
     @Namespace private var plusButtonNS
     @State private var searchText = ""
+    @State private var openItem: JarItem?
+    @State private var editItem: JarItem?
+    @State private var editKey = ""
+    @State private var editValue = ""
 
     var items: [JarItem] { (folder.items ?? []).sorted { $0.created > $1.created } }
     var filteredItems: [JarItem] {
@@ -301,6 +305,20 @@ struct FolderDetailView: View {
                             }
                         }
                         .padding(.vertical, 2)
+                        .contextMenu {
+                            Button("Open") { openItem = item }
+                            Button("Edit") {
+                                editItem = item
+                                editKey = item.key
+                                editValue = item.textValue ?? ""
+                            }
+                            Button(role: .destructive) {
+                                ctx.delete(item)
+                                CoreDataStack.shared.save()
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                     .onDelete { idx in
                         let arr = items
@@ -484,6 +502,32 @@ struct FolderDetailView: View {
             }
             .frame(minWidth: 340, minHeight: 180)
         }
+        .sheet(item: $openItem) { item in
+            ItemViewer(item: item)
+        }
+        .sheet(item: $editItem) { item in
+            NavigationStack {
+                Form {
+                    Section(header: Text("Key")) { TextField("Key", text: $editKey) }
+                    if item.itemType == .text {
+                        Section(header: Text("Value")) {
+                            TextEditor(text: $editValue).frame(minHeight: 80)
+                        }
+                    }
+                }
+                .navigationTitle("Edit Item")
+                .navigationBarItems(
+                    leading: Button("Cancel") { editItem = nil },
+                    trailing: Button("Save") {
+                        item.key = editKey
+                        if item.itemType == .text { item.textValue = editValue }
+                        CoreDataStack.shared.save()
+                        editItem = nil
+                    }.disabled(editKey.trimmingCharacters(in: .whitespaces).isEmpty || (item.itemType == .text && editValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
+                )
+            }
+            .frame(minWidth: 340, minHeight: item.itemType == .text ? 240 : 160)
+        }
     }
 
     @State private var showingKeyInput = false
@@ -535,6 +579,39 @@ struct ThumbButton: View {
         .offset(x: appear ? 0 : 20)
         .onAppear { withAnimation(.easeOut(duration: 0.2).delay(0.05)) { appear = true } }
         .onDisappear { appear = false }
+    }
+}
+
+// MARK: - ItemViewer
+
+struct ItemViewer: View {
+    let item: JarItem
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                if item.itemType == .text {
+                    ScrollView {
+                        Text(item.textValue ?? "")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                    }
+                } else if let d = item.fileData, let img = UIImage(data: d) {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFit()
+                        .padding()
+                } else if let name = item.fileName {
+                    Text(name)
+                        .padding()
+                } else {
+                    Text("No preview available")
+                        .padding()
+                }
+                Spacer()
+            }
+            .navigationTitle(item.key)
+            .frame(minWidth: 340, minHeight: 240)
+        }
     }
 }
 
