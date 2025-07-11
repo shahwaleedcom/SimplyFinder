@@ -158,6 +158,7 @@ struct ContentView: View {
     @State private var newFolderName = ""
     @State private var renameFolder: Folder?
     @State private var renameFolderName = ""
+    @State private var foldersToDelete: IndexSet?
 
     var body: some View {
         NavigationStack {
@@ -177,8 +178,7 @@ struct ContentView: View {
                         }
                     }
                     .onDelete { idx in
-                        for i in idx { ctx.delete(folders[i]) }
-                        CoreDataStack.shared.save()
+                        foldersToDelete = idx
                     }
                 }
                 .padding(.bottom, 90)
@@ -238,6 +238,19 @@ struct ContentView: View {
                     )
                 }
             }
+            .alert("Delete Folder?", isPresented: Binding(
+                get: { foldersToDelete != nil },
+                set: { if !$0 { foldersToDelete = nil } }
+            )) {
+                Button("Delete", role: .destructive) {
+                    if let idx = foldersToDelete {
+                        for i in idx { ctx.delete(folders[i]) }
+                        CoreDataStack.shared.save()
+                    }
+                    foldersToDelete = nil
+                }
+                Button("Cancel", role: .cancel) { foldersToDelete = nil }
+            }
         }
     }
 }
@@ -267,6 +280,8 @@ struct FolderDetailView: View {
     @State private var editItem: JarItem?
     @State private var editKey = ""
     @State private var editValue = ""
+    @State private var itemsToDelete: IndexSet?
+    @State private var contextItemToDelete: JarItem?
 
     var items: [JarItem] { (folder.items ?? []).sorted { $0.created > $1.created } }
     var filteredItems: [JarItem] {
@@ -325,17 +340,14 @@ struct FolderDetailView: View {
                                 copyItem(item)
                             }
                             Button(role: .destructive) {
-                                ctx.delete(item)
-                                CoreDataStack.shared.save()
+                                contextItemToDelete = item
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
                         }
                     }
                     .onDelete { idx in
-                        let arr = items
-                        for i in idx { ctx.delete(arr[i]) }
-                        CoreDataStack.shared.save()
+                        itemsToDelete = idx
                     }
                 }
                 .listStyle(.plain)
@@ -539,6 +551,33 @@ struct FolderDetailView: View {
                 )
             }
             .frame(minWidth: 340, minHeight: item.itemType == .text ? 240 : 160)
+        }
+        .alert("Delete Item?", isPresented: Binding(
+            get: { itemsToDelete != nil },
+            set: { if !$0 { itemsToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let idx = itemsToDelete {
+                    let arr = items
+                    for i in idx { ctx.delete(arr[i]) }
+                    CoreDataStack.shared.save()
+                }
+                itemsToDelete = nil
+            }
+            Button("Cancel", role: .cancel) { itemsToDelete = nil }
+        }
+        .alert("Delete Item?", isPresented: Binding(
+            get: { contextItemToDelete != nil },
+            set: { if !$0 { contextItemToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let item = contextItemToDelete {
+                    ctx.delete(item)
+                    CoreDataStack.shared.save()
+                }
+                contextItemToDelete = nil
+            }
+            Button("Cancel", role: .cancel) { contextItemToDelete = nil }
         }
     }
 
