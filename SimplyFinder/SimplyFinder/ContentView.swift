@@ -159,10 +159,16 @@ struct ContentView: View {
     @State private var renameFolder: Folder?
     @State private var renameFolderName = ""
     @State private var foldersToDelete: IndexSet?
+    let backgroundGradient = LinearGradient(
+        colors: [Color.orange.opacity(0.15), Color.pink.opacity(0.15)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
+                backgroundGradient.ignoresSafeArea()
                 List {
                     ForEach(folders) { folder in
                         NavigationLink(destination: FolderDetailView(folder: folder)) {
@@ -189,7 +195,7 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .frame(width: 84, height: 84)
                         .background(
-                            LinearGradient(gradient: Gradient(colors: [Color.purple, Color.pink]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                            LinearGradient(gradient: Gradient(colors: [Color.orange, Color.pink]), startPoint: .topLeading, endPoint: .bottomTrailing)
                         )
                         .clipShape(Circle())
                         .shadow(radius: 14)
@@ -282,6 +288,11 @@ struct FolderDetailView: View {
     @State private var editValue = ""
     @State private var itemsToDelete: IndexSet?
     @State private var contextItemToDelete: JarItem?
+    let backgroundGradient = LinearGradient(
+        colors: [Color.orange.opacity(0.15), Color.pink.opacity(0.15)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 
     var items: [JarItem] { (folder.items ?? []).sorted { $0.created > $1.created } }
     var filteredItems: [JarItem] {
@@ -296,7 +307,7 @@ struct FolderDetailView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemGray6).ignoresSafeArea()
+            backgroundGradient.ignoresSafeArea()
             VStack(spacing: 0) {
 #if os(macOS)
                 SearchField("Search", text: $searchText)
@@ -329,6 +340,7 @@ struct FolderDetailView: View {
                             }
                         }
                         .padding(.vertical, 2)
+                        .listRowBackground(item.itemType.color.opacity(0.1))
                         .contextMenu {
                             Button("Open") { openItem = item }
                             Button("Edit") {
@@ -397,7 +409,7 @@ struct FolderDetailView: View {
                                     .foregroundColor(.white)
                                     .frame(width: 84, height: 84)
                                     .background(
-                                        LinearGradient(gradient: Gradient(colors: [Color.purple, Color.pink]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                                        LinearGradient(gradient: Gradient(colors: [Color.orange, Color.pink]), startPoint: .topLeading, endPoint: .bottomTrailing)
                                     )
                                     .clipShape(Circle())
                                     .shadow(radius: 14)
