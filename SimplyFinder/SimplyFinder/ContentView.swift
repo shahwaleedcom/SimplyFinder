@@ -156,6 +156,8 @@ struct ContentView: View {
     ) private var folders: FetchedResults<Folder>
     @State private var showAddFolder = false
     @State private var newFolderName = ""
+    @State private var renameFolder: Folder?
+    @State private var renameFolderName = ""
 
     var body: some View {
         NavigationView {
@@ -164,6 +166,13 @@ struct ContentView: View {
                     NavigationLink(destination: FolderDetailView(folder: folder)) {
                         Label(folder.name, systemImage: "folder.fill")
                             .font(.headline)
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                        Button("Rename") {
+                            renameFolder = folder
+                            renameFolderName = folder.name
+                        }
+                        .tint(.blue)
                     }
                 }
                 .onDelete { idx in
@@ -199,6 +208,24 @@ struct ContentView: View {
                             showAddFolder = false
                             newFolderName = ""
                         }.disabled(newFolderName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    )
+                }
+            }
+            .sheet(item: $renameFolder) { folder in
+                NavigationView {
+                    Form {
+                        Section(header: Text("Folder Name")) {
+                            TextField("Folder", text: $renameFolderName)
+                        }
+                    }
+                    .navigationTitle("Rename Folder")
+                    .navigationBarItems(
+                        leading: Button("Cancel") { renameFolder = nil },
+                        trailing: Button("Save") {
+                            folder.name = renameFolderName
+                            CoreDataStack.shared.save()
+                            renameFolder = nil
+                        }.disabled(renameFolderName.trimmingCharacters(in: .whitespaces).isEmpty)
                     )
                 }
             }
