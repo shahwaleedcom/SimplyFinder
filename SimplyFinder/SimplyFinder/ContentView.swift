@@ -312,6 +312,9 @@ struct FolderDetailView: View {
                                 editKey = item.key
                                 editValue = item.textValue ?? ""
                             }
+                            Button("Copy") {
+                                copyItem(item)
+                            }
                             Button(role: .destructive) {
                                 ctx.delete(item)
                                 CoreDataStack.shared.save()
@@ -549,6 +552,20 @@ struct FolderDetailView: View {
         showSheet = false
         addType = nil
         showingKeyInput = false
+    }
+
+    private func copyItem(_ item: JarItem) {
+#if os(iOS)
+        if item.itemType == .text {
+            UIPasteboard.general.string = item.textValue ?? ""
+        } else if let data = item.fileData {
+            if (item.itemType == .photo || item.itemType == .camera), let img = UIImage(data: data) {
+                UIPasteboard.general.image = img
+            } else {
+                UIPasteboard.general.setData(data, forPasteboardType: UTType.data.identifier)
+            }
+        }
+#endif
     }
     // No longer using radial placement
 }
