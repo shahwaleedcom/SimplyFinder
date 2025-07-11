@@ -161,35 +161,44 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(folders) { folder in
-                    NavigationLink(destination: FolderDetailView(folder: folder)) {
-                        Label(folder.name, systemImage: "folder.fill")
-                            .font(.headline)
-                    }
-                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                        Button("Rename") {
-                            renameFolder = folder
-                            renameFolderName = folder.name
+            ZStack(alignment: .bottomTrailing) {
+                List {
+                    ForEach(folders) { folder in
+                        NavigationLink(destination: FolderDetailView(folder: folder)) {
+                            Label(folder.name, systemImage: "folder.fill")
+                                .font(.headline)
                         }
-                        .tint(.blue)
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            Button("Rename") {
+                                renameFolder = folder
+                                renameFolderName = folder.name
+                            }
+                            .tint(.blue)
+                        }
+                    }
+                    .onDelete { idx in
+                        for i in idx { ctx.delete(folders[i]) }
+                        CoreDataStack.shared.save()
                     }
                 }
-                .onDelete { idx in
-                    for i in idx { ctx.delete(folders[i]) }
-                    CoreDataStack.shared.save()
+                .padding(.bottom, 90)
+
+                Button(action: { showAddFolder = true }) {
+                    Image(systemName: "folder.badge.plus")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 84, height: 84)
+                        .background(
+                            LinearGradient(gradient: Gradient(colors: [Color.purple, Color.pink]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
+                        .clipShape(Circle())
+                        .shadow(radius: 14)
                 }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.trailing, 18)
+                .padding(.bottom, 24)
             }
             .navigationTitle("Folders")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showAddFolder = true
-                    } label: {
-                        Image(systemName: "folder.badge.plus")
-                    }
-                }
-            }
             .sheet(isPresented: $showAddFolder) {
                 NavigationStack {
                     Form {
