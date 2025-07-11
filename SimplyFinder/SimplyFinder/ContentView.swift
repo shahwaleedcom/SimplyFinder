@@ -321,52 +321,52 @@ struct FolderDetailView: View {
                 Spacer()
                 HStack {
                     Spacer()
-                    ZStack {
+                    ZStack(alignment: .bottomTrailing) {
                         if showMenu {
                             Color.black.opacity(0.20)
                                 .ignoresSafeArea()
                                 .onTapGesture { withAnimation { showMenu = false } }
                                 .transition(.opacity)
                         }
-                        // Arc menu pops up from bottom right corner
-                        ForEach(Array(ItemType.allCases.enumerated()), id: \.element.id) { idx, item in
+                        VStack(alignment: .trailing, spacing: 12) {
                             if showMenu {
-                                MenuOptionButton(item: item, angle: thumbMenuAngle(idx), distance: 100)
-                                    .matchedGeometryEffect(id: item.id, in: plusButtonNS)
-                                    .onTapGesture {
-                                        addType = item
-                                        showMenu = false
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.21) {
-                                            if item == .camera {
-                                                showCameraActionSheet = true
-                                            } else {
-                                                showSheet = true
+                                ForEach(ItemType.allCases) { item in
+                                    ThumbButton(item: item)
+                                        .matchedGeometryEffect(id: item.id, in: plusButtonNS)
+                                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                                        .onTapGesture {
+                                            addType = item
+                                            showMenu = false
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.21) {
+                                                if item == .camera {
+                                                    showCameraActionSheet = true
+                                                } else {
+                                                    showSheet = true
+                                                }
                                             }
                                         }
-                                    }
+                                }
                             }
+                            Button(action: {
+                                withAnimation(.spring(response: 0.38, dampingFraction: 0.7)) { showMenu.toggle() }
+                            }) {
+                                Image(systemName: showMenu ? "xmark" : "plus")
+                                    .font(.system(size: 48, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 84, height: 84)
+                                    .background(
+                                        LinearGradient(gradient: Gradient(colors: [Color.purple, Color.pink]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                                    )
+                                    .clipShape(Circle())
+                                    .shadow(radius: 14)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .scaleEffect(showMenu ? 1.08 : 1)
+                            .accessibilityLabel("Add Item")
                         }
-                        Button(action: {
-                            withAnimation(.spring(response: 0.38, dampingFraction: 0.7)) { showMenu.toggle() }
-                        }) {
-                            Image(systemName: showMenu ? "xmark" : "plus")
-                                .font(.system(size: 48, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 84, height: 84)
-                                .background(
-                                    LinearGradient(gradient: Gradient(colors: [Color.purple, Color.pink]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                                )
-                                .clipShape(Circle())
-                                .shadow(radius: 14)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .scaleEffect(showMenu ? 1.08 : 1)
-                        .accessibilityLabel("Add Item")
                         .padding(.trailing, 18)
                         .padding(.bottom, 24)
                     }
-                    // Ensures arc and buttons are not clipped
-                    .frame(width: 180, height: 220, alignment: .bottomTrailing)
                     .padding(.trailing, 10)
                     .padding(.bottom, 10)
                 }
@@ -506,50 +506,35 @@ struct FolderDetailView: View {
         addType = nil
         showingKeyInput = false
     }
-    // Spread arc from 210 to 130 degrees (counterclockwise, keeps buttons visible in bottom right)
-    private func thumbMenuAngle(_ idx: Int) -> Double {
-        let count = Double(ItemType.allCases.count)
-        let start = 210.0  // up/left from bottom right
-        let sweep = -80.0  // arc up to about 130 degrees
-        return start + (sweep / (count > 1 ? Double(count-1) : 1)) * Double(idx)
-    }
+    // No longer using radial placement
 }
 
-// MARK: - MenuOptionButton
+// MARK: - ThumbButton
 
-struct MenuOptionButton: View {
+struct ThumbButton: View {
     let item: ItemType
-    let angle: Double
-    let distance: CGFloat
     @State private var appear = false
     var body: some View {
-        let offset = CGPoint(
-            x: cos(angle * .pi / 180) * (appear ? distance : 0),
-            y: -sin(angle * .pi / 180) * (appear ? distance : 0)
-        )
-        return VStack {
+        VStack(spacing: 4) {
             Image(systemName: item.icon)
                 .font(.system(size: 30, weight: .semibold))
                 .foregroundColor(.white)
-                .frame(width: 68, height: 68)
+                .frame(width: 60, height: 60)
                 .background(item.color.gradient)
-                .clipShape(Circle())
-                .shadow(radius: 12)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .shadow(radius: 6)
                 .overlay(
-                    Circle()
-                        .stroke(.white.opacity(0.45), lineWidth: 3)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color.white.opacity(0.45), lineWidth: 2)
                 )
-                .scaleEffect(appear ? 1 : 0.3)
-                .opacity(appear ? 1 : 0)
-                .onAppear { withAnimation(.easeOut(duration: 0.2).delay(0.05)) { appear = true } }
-                .onDisappear { appear = false }
             Text(item.label)
                 .font(.caption.weight(.bold))
                 .foregroundColor(.secondary)
-                .offset(y: -10)
         }
-        .offset(x: offset.x, y: offset.y)
-        .animation(.spring(response: 0.35, dampingFraction: 0.68), value: appear)
+        .opacity(appear ? 1 : 0)
+        .offset(x: appear ? 0 : 20)
+        .onAppear { withAnimation(.easeOut(duration: 0.2).delay(0.05)) { appear = true } }
+        .onDisappear { appear = false }
     }
 }
 
