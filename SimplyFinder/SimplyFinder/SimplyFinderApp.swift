@@ -6,6 +6,7 @@ struct SimplyFinderApp: App {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, CoreDataStack.shared.ctx)
+                .tint(Color("AccentColor"))
         }
     }
 }
