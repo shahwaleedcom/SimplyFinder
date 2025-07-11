@@ -160,7 +160,7 @@ struct ContentView: View {
     @State private var renameFolderName = ""
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(folders) { folder in
                     NavigationLink(destination: FolderDetailView(folder: folder)) {
@@ -191,7 +191,7 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showAddFolder) {
-                NavigationView {
+                NavigationStack {
                     Form {
                         Section(header: Text("Folder Name")) {
                             TextField("Folder", text: $newFolderName)
@@ -375,7 +375,7 @@ struct FolderDetailView: View {
         }
         // Add Text
         .sheet(isPresented: Binding(get: { showSheet && addType == .text }, set: { showSheet = $0 })) {
-            NavigationView {
+            NavigationStack {
                 Form {
                     Section(header: Text("Key")) { TextField("Enter key", text: $tempKey) }
                     Section(header: Text("Value")) { TextEditor(text: $tempValue).frame(minHeight: 80) }
@@ -461,7 +461,7 @@ struct FolderDetailView: View {
         }
         // Key input sheet (for all types except text)
         .sheet(isPresented: $showingKeyInput) {
-            NavigationView {
+            NavigationStack {
                 Form {
                     Section(header: Text("Key")) { TextField("Enter key", text: $tempKey) }
                 }
