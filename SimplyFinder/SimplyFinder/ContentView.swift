@@ -13,7 +13,9 @@ typealias PlatformImage = NSImage
 // MARK: - ItemType Enum
 
 enum ItemType: Int16, CaseIterable, Identifiable {
-    case text, photo, camera, video, document
+    case text, photo, camera, video
+    @available(macOS, unavailable, message: "Document picker not available on macOS")
+    case document
     var id: Int16 { rawValue }
     var label: String { ["Text", "Photo", "Camera", "Video", "Document"][Int(rawValue)] }
     var icon: String { ["character.cursor.ibeam", "photo", "camera", "video", "doc"][Int(rawValue)] }
