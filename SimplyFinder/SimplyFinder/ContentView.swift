@@ -778,7 +778,13 @@ struct DocumentPicker: UIViewControllerRepresentable {
         let parent: DocumentPicker
         init(_ parent: DocumentPicker) { self.parent = parent }
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            if let url = urls.first { parent.onPick(url) }
+            guard let url = urls.first else { return }
+            if url.startAccessingSecurityScopedResource() {
+                parent.onPick(url)
+                url.stopAccessingSecurityScopedResource()
+            } else {
+                parent.onPick(url)
+            }
         }
     }
 }
@@ -790,7 +796,13 @@ struct DocumentPicker: View {
         EmptyView()
             .fileImporter(isPresented: $show, allowedContentTypes: [.content, .item]) { result in
                 switch result {
-                case .success(let url): onPick(url)
+                case .success(let url):
+                    if url.startAccessingSecurityScopedResource() {
+                        onPick(url)
+                        url.stopAccessingSecurityScopedResource()
+                    } else {
+                        onPick(url)
+                    }
                 default: break
                 }
             }
