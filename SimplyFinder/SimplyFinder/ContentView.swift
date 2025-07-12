@@ -523,9 +523,9 @@ struct FolderDetailView: View {
         // Add Document (iOS only)
 #if os(iOS)
         .sheet(isPresented: Binding(get: { showSheet && addType == .document }, set: { showSheet = $0 })) {
-            DocumentPicker { url in
+            DocumentPicker { url, data in
                 tempFileName = url.lastPathComponent
-                tempFileData = try? Data(contentsOf: url)
+                tempFileData = data
                 tempUIImage = nil
                 presentKeyInputSheet(for: .document)
             }
@@ -790,7 +790,7 @@ struct ItemViewer: View {
 // Document picker available only on iOS
 #if os(iOS)
 struct DocumentPicker: UIViewControllerRepresentable {
-    var onPick: (URL) -> Void
+    var onPick: (URL, Data?) -> Void
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         let controller = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.content, UTType.item], asCopy: true)
@@ -804,15 +804,15 @@ struct DocumentPicker: UIViewControllerRepresentable {
         init(_ parent: DocumentPicker) { self.parent = parent }
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             guard let url = urls.first else { return }
+            var data: Data? = nil
             if url.startAccessingSecurityScopedResource() {
-                DispatchQueue.main.async {
-                    self.parent.onPick(url)
-                    url.stopAccessingSecurityScopedResource()
-                }
+                data = try? Data(contentsOf: url)
+                url.stopAccessingSecurityScopedResource()
             } else {
-                DispatchQueue.main.async {
-                    self.parent.onPick(url)
-                }
+                data = try? Data(contentsOf: url)
+            }
+            DispatchQueue.main.async {
+                self.parent.onPick(url, data)
             }
         }
     }
