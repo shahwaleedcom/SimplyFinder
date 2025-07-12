@@ -21,7 +21,7 @@ Failed to create 0x88 image slot
 unable to find unknown slice or a compatible one in binary archive
 ```
 
-These messages come from system frameworks and usually do not indicate a problem with the app. They occur when the sandbox prevents access to system preferences, UIKit adjusts layout, or GPU services are unavailable. Unless the app crashes, they can be ignored.
+These messages come from system frameworks and usually do not indicate a problem with the app. They occur when the sandbox prevents access to system preferences, UIKit adjusts layout, or GPU services are unavailable. Unless the app crashes, they can be ignored. The first message about `NSBundle (null)` typically happens when a framework attempts to load a bundle using an empty path; SimplyFinder itself does not load bundles by path, so the log is harmless.
 
 The SQLite store used by Core Data will be created under:
 `~/Library/Containers/meez.SimplyFinder/Data/Library/Application Support/SimplyFinder/JarData.sqlite`
