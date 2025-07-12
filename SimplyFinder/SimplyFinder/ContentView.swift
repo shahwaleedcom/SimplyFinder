@@ -714,6 +714,7 @@ struct ThumbButton: View {
 
 struct ItemViewer: View {
     let item: JarItem
+    @State private var previewURL: URL?
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
@@ -730,12 +731,13 @@ struct ItemViewer: View {
                             .resizable()
                             .scaledToFit()
                             .padding()
-                    } else if let name = item.fileName {
-                        Text(name)
-                            .padding()
+                    } else if let url = previewURL {
+                        QuickLookPreview(url: url)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        Text("No preview available")
+                        Text(item.fileName ?? "No preview available")
                             .padding()
+                            .onAppear { createPreviewFile(data: d) }
                     }
 #else
                     if let img = NSImage(data: d) {
@@ -743,12 +745,13 @@ struct ItemViewer: View {
                             .resizable()
                             .scaledToFit()
                             .padding()
-                    } else if let name = item.fileName {
-                        Text(name)
-                            .padding()
+                    } else if let url = previewURL {
+                        QuickLookPreview(url: url)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        Text("No preview available")
+                        Text(item.fileName ?? "No preview available")
                             .padding()
+                            .onAppear { createPreviewFile(data: d) }
                     }
 #endif
                 }
@@ -756,6 +759,26 @@ struct ItemViewer: View {
             }
             .navigationTitle(item.key)
             .frame(minWidth: 340, minHeight: 240)
+        }
+        .onDisappear { removePreviewFile() }
+    }
+
+    private func createPreviewFile(data: Data) {
+        guard previewURL == nil else { return }
+        let name = item.fileName ?? UUID().uuidString
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        do {
+            try data.write(to: url)
+            previewURL = url
+        } catch {
+            previewURL = nil
+        }
+    }
+
+    private func removePreviewFile() {
+        if let url = previewURL {
+            try? FileManager.default.removeItem(at: url)
+            previewURL = nil
         }
     }
 }
