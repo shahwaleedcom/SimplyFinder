@@ -16,9 +16,12 @@ When running in a sandboxed environment you may see log output similar to:
 NSBundle (null) initWithPath failed because the resolved path is empty or nil
 networkd_settings_read_from_file Sandbox is preventing this process from reading networkd settings file at "/Library/Preferences/com.apple.networkd.plist"
 ViewBridge to RemoteViewService Terminated: ... NSViewBridgeErrorCanceled
+UINavigationBar has changed horizontal size class without updating search bar to new placement
+Failed to create 0x88 image slot
+unable to find unknown slice or a compatible one in binary archive
 ```
 
-These messages come from system frameworks and usually do not indicate a problem with the app. They occur when the sandbox prevents access to system preferences or when a remote view controller closes. Unless the app crashes, these logs can generally be ignored.
+These messages come from system frameworks and usually do not indicate a problem with the app. They occur when the sandbox prevents access to system preferences, UIKit adjusts layout, or GPU services are unavailable. Unless the app crashes, they can be ignored.
 
 The SQLite store used by Core Data will be created under:
 `~/Library/Containers/meez.SimplyFinder/Data/Library/Application Support/SimplyFinder/JarData.sqlite`
