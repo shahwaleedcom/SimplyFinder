@@ -20,7 +20,7 @@ enum ItemType: Int16, CaseIterable, Identifiable {
     var color: Color { [.teal, .yellow, .green, .purple, .orange][Int(rawValue)] }
     static var allCases: [ItemType] {
 #if os(macOS)
-        [.text, .photo, .video, .document]
+        [.text, .photo, .video] // Document picker removed on macOS
 #else
         [.text, .photo, .camera, .video, .document]
 #endif
@@ -520,7 +520,8 @@ struct FolderDetailView: View {
                 }
             }
         }
-        // Add Document
+        // Add Document (iOS only)
+#if os(iOS)
         .sheet(isPresented: Binding(get: { showSheet && addType == .document }, set: { showSheet = $0 })) {
             DocumentPicker { url in
                 tempFileName = url.lastPathComponent
@@ -529,6 +530,7 @@ struct FolderDetailView: View {
                 presentKeyInputSheet(for: .document)
             }
         }
+#endif
         // Camera
         .confirmationDialog("Camera", isPresented: $showCameraActionSheet) {
             Button("Take Photo") { cameraMediaType = .photo; showCameraPicker = true }
@@ -785,7 +787,7 @@ struct ItemViewer: View {
 
 // MARK: - Document Picker & Camera
 
-// Document picker implementation differs by platform
+// Document picker available only on iOS
 #if os(iOS)
 struct DocumentPicker: UIViewControllerRepresentable {
     var onPick: (URL) -> Void
@@ -813,31 +815,6 @@ struct DocumentPicker: UIViewControllerRepresentable {
                 }
             }
         }
-    }
-}
-#else
-struct DocumentPicker: View {
-    var onPick: (URL) -> Void
-    @State private var show = false
-    var body: some View {
-        EmptyView()
-            .fileImporter(isPresented: $show, allowedContentTypes: [.content, .item]) { result in
-                switch result {
-                case .success(let url):
-                    if url.startAccessingSecurityScopedResource() {
-                        DispatchQueue.main.async {
-                            onPick(url)
-                            url.stopAccessingSecurityScopedResource()
-                        }
-                    } else {
-                        DispatchQueue.main.async {
-                            onPick(url)
-                        }
-                    }
-                default: break
-                }
-            }
-            .onAppear { show = true }
     }
 }
 #endif
