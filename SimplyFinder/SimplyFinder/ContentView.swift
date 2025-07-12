@@ -2,9 +2,13 @@ import SwiftUI
 import CoreData
 import PhotosUI
 import UniformTypeIdentifiers
+#if os(iOS)
 import UIKit
-
 typealias PlatformImage = UIImage
+#else
+import AppKit
+typealias PlatformImage = NSImage
+#endif
 
 // MARK: - ItemType Enum
 
@@ -14,6 +18,13 @@ enum ItemType: Int16, CaseIterable, Identifiable {
     var label: String { ["Text", "Photo", "Camera", "Video", "Document"][Int(rawValue)] }
     var icon: String { ["character.cursor.ibeam", "photo", "camera", "video", "doc"][Int(rawValue)] }
     var color: Color { [.teal, .yellow, .green, .purple, .orange][Int(rawValue)] }
+    static var allCases: [ItemType] {
+#if os(macOS)
+        [.text, .photo, .video, .document]
+#else
+        [.text, .photo, .camera, .video, .document]
+#endif
+    }
 }
 
 // MARK: - Core Data Stack (CloudKit)
@@ -275,11 +286,13 @@ struct FolderDetailView: View {
     @State private var tempFileName: String?
     @State private var tempUIImage: PlatformImage?
     @State private var photoPickerItem: PhotosPickerItem?
+#if os(iOS)
     @State private var showCameraPicker = false
     @State private var cameraMediaType: CameraMediaType = .photo
     @State private var cameraImage: UIImage?
     @State private var cameraVideoURL: URL?
     @State private var showCameraActionSheet = false
+#endif
     @Namespace private var plusButtonNS
     @State private var searchText = ""
     @State private var openItem: JarItem?
@@ -330,13 +343,24 @@ struct FolderDetailView: View {
                             }
                             Spacer()
                             if (item.itemType == .photo || item.itemType == .video || item.itemType == .camera),
-                               let d = item.fileData,
-                               let uiimg = UIImage(data: d) {
-                                Image(uiImage: uiimg)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 36, height: 36)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                               let d = item.fileData {
+#if os(iOS)
+                                if let uiimg = UIImage(data: d) {
+                                    Image(uiImage: uiimg)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 36, height: 36)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
+#else
+                                if let nsimg = NSImage(data: d) {
+                                    Image(nsImage: nsimg)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 36, height: 36)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
+#endif
                             }
                         }
                         .padding(.vertical, 2)
@@ -458,11 +482,22 @@ struct FolderDetailView: View {
         .onChange(of: photoPickerItem) {
             if let item = photoPickerItem {
                 Task {
-                    if let data = try? await item.loadTransferable(type: Data.self), let uiimg = UIImage(data: data) {
-                        tempUIImage = uiimg
-                        tempFileData = data
-                        tempFileName = "Photo-\(Date().timeIntervalSince1970).jpg"
-                        presentKeyInputSheet(for: .photo)
+                    if let data = try? await item.loadTransferable(type: Data.self) {
+#if os(iOS)
+                        if let img = UIImage(data: data) {
+                            tempUIImage = img
+                            tempFileData = data
+                            tempFileName = "Photo-\(Date().timeIntervalSince1970).jpg"
+                            presentKeyInputSheet(for: .photo)
+                        }
+#else
+                        if let img = NSImage(data: data) {
+                            tempUIImage = img
+                            tempFileData = data
+                            tempFileName = "Photo-\(Date().timeIntervalSince1970).jpg"
+                            presentKeyInputSheet(for: .photo)
+                        }
+#endif
                     }
                 }
             }
@@ -475,7 +510,11 @@ struct FolderDetailView: View {
                     if let url = try? await item.loadTransferable(type: URL.self), let data = try? Data(contentsOf: url) {
                         tempFileData = data
                         tempFileName = url.lastPathComponent
+#if os(iOS)
                         tempUIImage = UIImage(systemName: "video")
+#else
+                        tempUIImage = NSImage(systemSymbolName: "video", accessibilityDescription: nil)
+#endif
                         presentKeyInputSheet(for: .video)
                     }
                 }
@@ -625,6 +664,18 @@ struct FolderDetailView: View {
                 UIPasteboard.general.setData(data, forPasteboardType: UTType.data.identifier)
             }
         }
+#else
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        if item.itemType == .text {
+            pb.setString(item.textValue ?? "", forType: .string)
+        } else if let data = item.fileData {
+            if (item.itemType == .photo || item.itemType == .camera), let img = NSImage(data: data) {
+                pb.writeObjects([img])
+            } else {
+                pb.setData(data, forType: NSPasteboard.PasteboardType(UTType.data.identifier))
+            }
+        }
 #endif
     }
     // No longer using radial placement
@@ -672,17 +723,34 @@ struct ItemViewer: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding()
                     }
-                } else if let d = item.fileData, let img = UIImage(data: d) {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFit()
-                        .padding()
-                } else if let name = item.fileName {
-                    Text(name)
-                        .padding()
-                } else {
-                    Text("No preview available")
-                        .padding()
+                } else if let d = item.fileData {
+#if os(iOS)
+                    if let img = UIImage(data: d) {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFit()
+                            .padding()
+                    } else if let name = item.fileName {
+                        Text(name)
+                            .padding()
+                    } else {
+                        Text("No preview available")
+                            .padding()
+                    }
+#else
+                    if let img = NSImage(data: d) {
+                        Image(nsImage: img)
+                            .resizable()
+                            .scaledToFit()
+                            .padding()
+                    } else if let name = item.fileName {
+                        Text(name)
+                            .padding()
+                    } else {
+                        Text("No preview available")
+                            .padding()
+                    }
+#endif
                 }
                 Spacer()
             }
@@ -694,6 +762,8 @@ struct ItemViewer: View {
 
 // MARK: - Document Picker & Camera
 
+// Document picker implementation differs by platform
+#if os(iOS)
 struct DocumentPicker: UIViewControllerRepresentable {
     var onPick: (URL) -> Void
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -712,7 +782,24 @@ struct DocumentPicker: UIViewControllerRepresentable {
         }
     }
 }
+#else
+struct DocumentPicker: View {
+    var onPick: (URL) -> Void
+    @State private var show = false
+    var body: some View {
+        EmptyView()
+            .fileImporter(isPresented: $show, allowedContentTypes: [.content, .item]) { result in
+                switch result {
+                case .success(let url): onPick(url)
+                default: break
+                }
+            }
+            .onAppear { show = true }
+    }
+}
+#endif
 
+#if os(iOS)
 enum CameraMediaType { case photo; case video }
 struct CameraView: UIViewControllerRepresentable {
     var mediaType: CameraMediaType
@@ -752,3 +839,12 @@ struct CameraView: UIViewControllerRepresentable {
     }
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 }
+#else
+enum CameraMediaType { case photo; case video }
+struct CameraView: View {
+    var mediaType: CameraMediaType
+    var body: some View {
+        Text("Camera not supported on macOS")
+    }
+}
+#endif
