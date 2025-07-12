@@ -248,11 +248,15 @@ struct ContentView: View {
                     }
                     .navigationTitle("Rename Folder")
                     .navigationBarItems(
-                        leading: Button("Cancel") { renameFolder = nil },
+                        leading: Button("Cancel") {
+                            renameFolder = nil
+                            renameFolderName = ""
+                        },
                         trailing: Button("Save") {
                             folder.name = renameFolderName
                             CoreDataStack.shared.save()
                             renameFolder = nil
+                            renameFolderName = ""
                         }.disabled(renameFolderName.trimmingCharacters(in: .whitespaces).isEmpty)
                     )
                 }
