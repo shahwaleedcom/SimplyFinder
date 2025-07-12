@@ -780,10 +780,14 @@ struct DocumentPicker: UIViewControllerRepresentable {
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             guard let url = urls.first else { return }
             if url.startAccessingSecurityScopedResource() {
-                parent.onPick(url)
-                url.stopAccessingSecurityScopedResource()
+                DispatchQueue.main.async {
+                    self.parent.onPick(url)
+                    url.stopAccessingSecurityScopedResource()
+                }
             } else {
-                parent.onPick(url)
+                DispatchQueue.main.async {
+                    self.parent.onPick(url)
+                }
             }
         }
     }
@@ -798,10 +802,14 @@ struct DocumentPicker: View {
                 switch result {
                 case .success(let url):
                     if url.startAccessingSecurityScopedResource() {
-                        onPick(url)
-                        url.stopAccessingSecurityScopedResource()
+                        DispatchQueue.main.async {
+                            onPick(url)
+                            url.stopAccessingSecurityScopedResource()
+                        }
                     } else {
-                        onPick(url)
+                        DispatchQueue.main.async {
+                            onPick(url)
+                        }
                     }
                 default: break
                 }
