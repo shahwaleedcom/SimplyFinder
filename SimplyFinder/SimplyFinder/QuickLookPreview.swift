@@ -1,7 +1,6 @@
 import SwiftUI
 import QuickLook
 
-#if os(iOS)
 struct QuickLookPreview: UIViewControllerRepresentable {
     var url: URL
 
@@ -27,19 +26,3 @@ struct QuickLookPreview: UIViewControllerRepresentable {
         }
     }
 }
-#else
-struct QuickLookPreview: NSViewRepresentable {
-    var url: URL
-
-    func makeNSView(context: Context) -> QLPreviewView {
-        let view = QLPreviewView()
-        view.autostarts = true
-        view.previewItem = url as NSURL
-        return view
-    }
-
-    func updateNSView(_ nsView: QLPreviewView, context: Context) {
-        nsView.previewItem = url as NSURL
-    }
-}
-#endif

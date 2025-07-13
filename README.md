@@ -3,13 +3,12 @@
 SimplyFinder is a SwiftUI application that stores text, photos, and other files in folders using Core Data with CloudKit. The project is provided as an Xcode project.
 
 ## Requirements
-- macOS 12 or later
 - Xcode 14 or later
 
 ## Building
 Open `SimplyFinder/SimplyFinder.xcodeproj` in Xcode and run the `SimplyFinder` scheme. There are no command‑line build steps or tests in this repository.
 
-Document picking is only supported on iOS. The macOS version no longer includes a document picker. On iPhone, imported documents now save both their name and data so you can view them later without reimporting.
+Document picking is only supported on iOS. On iPhone, imported documents now save both their name and data so you can view them later without reimporting.
 
 ## Troubleshooting
 When running in a sandboxed environment you may see log output similar to:

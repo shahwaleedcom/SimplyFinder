@@ -186,7 +186,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
                                 SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-                                SUPPORTS_MACCATALYST = YES;
+                                SUPPORTS_MACCATALYST = NO;
 			};
 			name = Debug;
 		};
@@ -244,7 +244,7 @@
 				SDKROOT = iphoneos;
                                 SWIFT_COMPILATION_MODE = wholemodule;
                                 VALIDATE_PRODUCT = YES;
-                                SUPPORTS_MACCATALYST = YES;
+                                SUPPORTS_MACCATALYST = NO;
 			};
 			name = Release;
 		};
@@ -278,7 +278,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
                                 SWIFT_EMIT_LOC_STRINGS = YES;
                                 SWIFT_VERSION = 5.0;
-                                SUPPORTS_MACCATALYST = YES;
+                                SUPPORTS_MACCATALYST = NO;
                                 TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -313,7 +313,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
                                 SWIFT_EMIT_LOC_STRINGS = YES;
                                 SWIFT_VERSION = 5.0;
-                                SUPPORTS_MACCATALYST = YES;
+                                SUPPORTS_MACCATALYST = NO;
                                 TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
