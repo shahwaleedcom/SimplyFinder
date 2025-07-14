@@ -10,6 +10,9 @@ Open `SimplyFinder/SimplyFinder.xcodeproj` in Xcode and run the `SimplyFinder` s
 
 Document picking is only supported on iOS. On iPhone, imported documents now save both their name and data so you can view them later without reimporting.
 
+## iPad Support
+The interface adapts to iPad screens. When using the camera, the picker now presents in full‑screen mode on iPad to avoid the view being clipped.
+
 ## Troubleshooting
 When running in a sandboxed environment you may see log output similar to:
 
