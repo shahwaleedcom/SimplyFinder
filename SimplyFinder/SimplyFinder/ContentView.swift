@@ -766,6 +766,9 @@ struct CameraView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            picker.modalPresentationStyle = .fullScreen
+        }
         if mediaType == .photo {
             picker.sourceType = .camera
             picker.mediaTypes = ["public.image"]
