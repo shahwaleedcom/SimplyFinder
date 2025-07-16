@@ -43,3 +43,6 @@ The SQLite store used by Core Data will be created under:
 
 Make sure your iCloud entitlements are configured if you want to sync data via CloudKit.
 
+## Support
+For help and troubleshooting, see [docs/support.md](docs/support.md).
+
